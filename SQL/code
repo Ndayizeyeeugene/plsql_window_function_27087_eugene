@@ -1,0 +1,75 @@
+CREATE TABLE Customers (
+    customer_id INT PRIMARY KEY,
+    full_name VARCHAR(100),
+    email VARCHAR(100),
+    phone VARCHAR(20)
+);
+CREATE TABLE Accounts (
+    account_id INT PRIMARY KEY,
+    customer_id INT,
+    account_type VARCHAR(20),
+    balance DECIMAL(10,2),
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+);
+CREATE TABLE Transactions (
+    transaction_id INT PRIMARY KEY,
+    account_id INT,
+    transaction_date DATE,
+    amount DECIMAL(10,2),
+    transaction_type VARCHAR(20),
+    FOREIGN KEY (account_id) REFERENCES Accounts(account_id)
+);
+INSERT INTO Customers VALUES
+(1, 'John Doe', 'john@gmail.com', '078000111'),
+(2, 'Alice Smith', 'alice@gmail.com', '078000222');
+INSERT INTO Accounts VALUES
+(101, 1, 'Savings', 5000.00),
+(102, 1, 'Current', 2000.00),
+(103, 2, 'Savings', 8000.00);
+INSERT INTO Transactions VALUES
+(1001, 101, '2025-01-01', 1000.00, 'Deposit'),
+(1002, 101, '2025-01-05', 500.00, 'Withdrawal'),
+(1003, 103, '2025-01-03', 2000.00, 'Deposit');
+
+SELECT c.full_name, a.account_type, a.balance
+FROM Customers c
+JOIN Accounts a ON c.customer_id = a.customer_id;
+SELECT c.full_name, a.account_id, t.amount, t.transaction_type
+FROM Customers c
+JOIN Accounts a ON c.customer_id = a.customer_id
+JOIN Transactions t ON a.account_id = t.account_id;
+
+SELECT 
+    c.full_name,
+    a.account_id,
+    a.balance,
+    SUM(a.balance) OVER (PARTITION BY c.customer_id) AS total_customer_balance
+FROM Customers c
+JOIN Accounts a ON c.customer_id = a.customer_id;
+SELECT 
+    account_id,
+    amount,
+    transaction_type,
+    RANK() OVER (PARTITION BY account_id ORDER BY amount DESC) AS transaction_rank
+FROM Transactions;
+
+SELECT
+    account_id,
+    transaction_date,
+    amount,
+    LEAD(amount) OVER (
+        PARTITION BY account_id
+        ORDER BY transaction_date
+    ) AS next_transaction_amount
+FROM Transactions;
+SELECT
+    transaction_id,
+    account_id,
+    amount,
+    NTILE(3) OVER (ORDER BY amount DESC) AS amount_group
+FROM Transactions;
+
+select * from Transactions;
+select * from Accounts;
+select * from Customers;
+
